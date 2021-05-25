@@ -1,13 +1,18 @@
 module Api
   module V1
-    class AirlinesController < ApiController
+    class AirlinesController < ApplicationController
+      protect_from_forgery with: :null_session
       def index
-        render json: serializer(airlines, options)
+        airlines = Airline.all
+        render json: AirlineSerializer.new(airlines).serialized_json
       end
       
       # GET /api/v1/airlines/:slug
       def show
-        render json: serializer(airline, options)
+      
+        airline = Airline.find_by(sluge: params[:sluge])
+        render json: AirlineSerializer.new(airline).serialized_json
+        
       end
 
       # POST /api/v1/airlines
@@ -15,7 +20,7 @@ module Api
         airline = Airline.new(airline_params)
 
         if airline.save
-          render json: serializer(airline)
+          render json: AirlineSerializer.new(airline).serialized_json
         else
           render json: errors(airline), status: 422
         end
@@ -23,15 +28,17 @@ module Api
 
       # PATCH /api/v1/airlines/:slug
       def update
-        airline = Airline.find_by(slug: params[:slug])
+        airline = Airline.find_by(sluge: params[:sluge])
 
         if airline.update(airline_params)
-          render json: serializer(airline, options)
+          render json: AirlineSerializer.new(airline).serialized_json
         else
           render json: errors(airline), status: 422
         end
       end
       def destroy
+        airline = Airline.find_by(sluge: params[:sluge])
+      
         if airline.destroy
           head :no_content
         else
